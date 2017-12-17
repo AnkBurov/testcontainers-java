@@ -4,6 +4,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import junit.framework.AssertionFailedError;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class CassandraContainerTest {
                 Container.ExecResult execResult = cassandraContainer.execInContainer("cat", "/etc/cassandra/cassandra.yaml");
                 assertTrue("Cassandra configuration is not overridden", execResult.getStdout().contains(TEST_STRING_IN_CONF));
             } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Could not check cassandra configuration");
+                throw new AssertionFailedError("Could not check cassandra configuration");
             }
         });
     }

@@ -41,7 +41,7 @@ public abstract class AbstractDatabaseDelegate<CONTAINER, CONNECTION> implements
                 lineNumber++;
                 execute(statement, scriptPath, lineNumber, continueOnError, ignoreFailedDrops);
             }
-        };
+        }
     }
 
     @Override
