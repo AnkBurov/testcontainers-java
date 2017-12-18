@@ -29,11 +29,14 @@ public class CassandraContainerTest {
     public void testSimple() throws Exception {
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+        cassandraContainer.start();
+        try {
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT release_version FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
             assertNotNull("Result set has no release_version", resultSet.one().getString(0));
-        });
+        } finally {
+            cassandraContainer.stop();
+        }
     }
 
     @Test
@@ -41,11 +44,14 @@ public class CassandraContainerTest {
         String cassandraVersion = "3.0.15";
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:" + cassandraVersion)
                 .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+        cassandraContainer.start();
+        try {
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT release_version FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
             assertEquals("Cassandra has wrong version", cassandraVersion, resultSet.one().getString(0));
-        });
+        } finally {
+            cassandraContainer.stop();
+        }
     }
 
     @Test
@@ -53,14 +59,15 @@ public class CassandraContainerTest {
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withConfigurationOverride("cassandra-test-configuration-example")
                 .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
-            try {
-                Container.ExecResult execResult = cassandraContainer.execInContainer("cat", "/etc/cassandra/cassandra.yaml");
-                assertTrue("Cassandra configuration is not overridden", execResult.getStdout().contains(TEST_STRING_IN_CONF));
-            } catch (IOException | InterruptedException e) {
-                throw new AssertionFailedError("Could not check cassandra configuration");
-            }
-        });
+        cassandraContainer.start();
+        try {
+            Container.ExecResult execResult = cassandraContainer.execInContainer("cat", "/etc/cassandra/cassandra.yaml");
+            assertTrue("Cassandra configuration is not overridden", execResult.getStdout().contains(TEST_STRING_IN_CONF));
+        } catch (IOException | InterruptedException e) {
+            throw new AssertionFailedError("Could not check cassandra configuration");
+        } finally {
+            cassandraContainer.stop();
+        }
     }
 
     @Test
@@ -84,24 +91,22 @@ public class CassandraContainerTest {
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .waitingFor(new CassandraQueryWaitStrategy())
                 .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
-        });
+        cassandraContainer.start();
+        try {
+            assertTrue("Cassandra container is not running", cassandraContainer.isRunning());
+        } finally {
+            cassandraContainer.stop();
+        }
     }
 
     private void testInitScript(CassandraContainer cassandraContainer) {
-        performWithContainer(cassandraContainer, () -> {
+        cassandraContainer.start();
+        try {
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT * FROM IgniteTest.catalog_category");
             assertTrue("Query was not applied", resultSet.wasApplied());
             Row row = resultSet.one();
             assertEquals("Inserted row is not in expected state", 1, row.getLong(0));
             assertEquals("Inserted row is not in expected state", "test_category", row.getString(1));
-        });
-    }
-
-    private void performWithContainer(CassandraContainer cassandraContainer, Runnable runnable) {
-        cassandraContainer.start();
-        try {
-            runnable.run();
         } finally {
             cassandraContainer.stop();
         }
