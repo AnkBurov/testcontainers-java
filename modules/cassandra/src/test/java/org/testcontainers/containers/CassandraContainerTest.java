@@ -75,6 +75,7 @@ public class CassandraContainerTest {
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withInitScript("initial.cql")
                 .withLogConsumer(new Slf4jLogConsumer(logger));
+        assertNotNull("is null", cassandraContainer);
         testInitScript(cassandraContainer);
     }
 
@@ -83,6 +84,7 @@ public class CassandraContainerTest {
         CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:2.2.11")
                 .withInitScript("initial.cql")
                 .withLogConsumer(new Slf4jLogConsumer(logger));
+        assertNotNull("is null", cassandraContainer);
         testInitScript(cassandraContainer);
     }
 
