@@ -7,8 +7,8 @@ import com.datastax.driver.core.exceptions.DriverException;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.CassandraContainer;
 import org.testcontainers.delegate.AbstractDatabaseDelegate;
-import org.testcontainers.delegate.exception.ConnectionCreationException;
-import org.testcontainers.jdbc.ext.ScriptUtils;
+import org.testcontainers.exception.ConnectionCreationException;
+import org.testcontainers.ext.ScriptUtils;
 
 import static org.testcontainers.containers.CassandraContainer.CQL_PORT;
 

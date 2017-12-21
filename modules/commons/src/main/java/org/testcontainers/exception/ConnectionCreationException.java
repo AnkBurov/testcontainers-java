@@ -1,4 +1,4 @@
-package org.testcontainers.delegate.exception;
+package org.testcontainers.exception;
 
 /**
  * Inability to create connection to the database

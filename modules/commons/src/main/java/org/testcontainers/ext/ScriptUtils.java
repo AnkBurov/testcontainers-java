@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.testcontainers.jdbc.ext;
+package org.testcontainers.ext;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.JdbcDatabaseContainerProvider;
 import org.testcontainers.delegate.DatabaseDelegate;
-import org.testcontainers.delegate.JdbcDatabaseDelegate;
-import org.testcontainers.jdbc.ext.ScriptUtils;
+import org.testcontainers.ext.ScriptUtils;
 
 import javax.script.ScriptException;
 import java.io.IOException;

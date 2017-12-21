@@ -4,8 +4,8 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.apache.commons.io.IOUtils;
 import org.testcontainers.containers.delegate.CassandraDatabaseDelegate;
 import org.testcontainers.delegate.DatabaseDelegate;
-import org.testcontainers.jdbc.ext.ScriptUtils;
-import org.testcontainers.jdbc.ext.ScriptUtils.ScriptLoadException;
+import org.testcontainers.ext.ScriptUtils;
+import org.testcontainers.ext.ScriptUtils.ScriptLoadException;
 import org.testcontainers.utility.MountableFile;
 
 import javax.script.ScriptException;
