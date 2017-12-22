@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.testcontainers.jdbc.ext;
+package org.testcontainers.ext;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -243,7 +243,7 @@ public abstract class ScriptUtils {
 
 		try {
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Executing SQL script from " + scriptPath);
+				LOGGER.info("Executing database script from " + scriptPath);
 			}
 
 			long startTime = System.currentTimeMillis();
@@ -259,11 +259,13 @@ public abstract class ScriptUtils {
 			splitSqlScript(scriptPath, script, separator, commentPrefix, blockCommentStartDelimiter,
 				blockCommentEndDelimiter, statements);
 
-			databaseDelegate.execute(statements, scriptPath, continueOnError, ignoreFailedDrops);
+			try (DatabaseDelegate closeableDelegate = databaseDelegate) {
+				closeableDelegate.execute(statements, scriptPath, continueOnError, ignoreFailedDrops);
+			}
 
 			long elapsedTime = System.currentTimeMillis() - startTime;
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Executed SQL script from " + scriptPath + " in " + elapsedTime + " ms.");
+				LOGGER.info("Executed database script from " + scriptPath + " in " + elapsedTime + " ms.");
 			}
 		}
 		catch (Exception ex) {

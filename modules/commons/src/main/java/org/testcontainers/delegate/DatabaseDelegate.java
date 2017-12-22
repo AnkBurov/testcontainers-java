@@ -17,7 +17,7 @@ public interface DatabaseDelegate extends AutoCloseable {
     void execute(String statement, String scriptPath, int lineNumber, boolean continueOnError, boolean ignoreFailedDrops);
 
     /**
-     * Execute collection of statements and close underlying connection
+     * Execute collection of statements
      */
     void execute(Collection<String> statements, String scriptPath, boolean continueOnError, boolean ignoreFailedDrops);
 
