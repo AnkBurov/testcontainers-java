@@ -35,7 +35,7 @@ public abstract class AbstractDatabaseDelegate<CONTAINER, CONNECTION> implements
 
     @Override
     public void execute(Collection<String> statements, String scriptPath, boolean continueOnError, boolean ignoreFailedDrops) {
-        int lineNumber = 1;
+        int lineNumber = 0;
         for (String statement : statements) {
             lineNumber++;
             execute(statement, scriptPath, lineNumber, continueOnError, ignoreFailedDrops);
