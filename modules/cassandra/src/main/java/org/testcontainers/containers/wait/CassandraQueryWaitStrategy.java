@@ -21,7 +21,7 @@ import static org.rnorth.ducttape.unreliables.Unreliables.retryUntilSuccess;
 public class CassandraQueryWaitStrategy extends GenericContainer.AbstractWaitStrategy {
 
     private static final String SELECT_VERSION_QUERY = "SELECT release_version FROM system.local";
-    private static final String TIMEOUT_ERROR = "SELECT release_version FROM system.local";
+    private static final String TIMEOUT_ERROR = "Timed out waiting for Cassandra to be accessible for query execution";
 
     @Override
     protected void waitUntilReady() {

@@ -1,4 +1,5 @@
 # Cassandra storage config YAML
+##### Example of Cassandra config that can be used to override default Cassandra config - see withConfigurationOverride
 
 # NOTE:
 #   See http://wiki.apache.org/cassandra/StorageConfiguration for

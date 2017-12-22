@@ -3,7 +3,7 @@ package org.testcontainers.delegate;
 import java.util.Collection;
 
 /**
- * @param <CONTAINER> testcontainers container
+ * @param <CONTAINER>  testcontainers container
  * @param <CONNECTION> connection to the database
  * @author Eugeny Karpov
  */
@@ -28,19 +28,17 @@ public abstract class AbstractDatabaseDelegate<CONTAINER, CONNECTION> implements
      */
     protected CONNECTION getConnection() {
         if (connection == null) {
-            this.connection = createNewConnection();
+            connection = createNewConnection();
         }
         return connection;
     }
 
     @Override
     public void execute(Collection<String> statements, String scriptPath, boolean continueOnError, boolean ignoreFailedDrops) {
-        try (DatabaseDelegate closeableDelegate = this) {
-            int lineNumber = 0;
-            for (String statement : statements) {
-                lineNumber++;
-                execute(statement, scriptPath, lineNumber, continueOnError, ignoreFailedDrops);
-            }
+        int lineNumber = 1;
+        for (String statement : statements) {
+            lineNumber++;
+            execute(statement, scriptPath, lineNumber, continueOnError, ignoreFailedDrops);
         }
     }
 

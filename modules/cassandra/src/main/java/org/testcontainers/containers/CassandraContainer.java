@@ -33,18 +33,22 @@ public class CassandraContainer<SELF extends CassandraContainer<SELF>> extends G
     private String initScriptPath;
 
     public CassandraContainer() {
-        super(IMAGE + ":latest");
+        this(IMAGE + ":latest");
     }
 
     public CassandraContainer(String dockerImageName) {
+        this(dockerImageName, 3);
+    }
+
+    public CassandraContainer(String dockerImageName, int startupAttempts) {
         super(dockerImageName);
+        setStartupAttempts(startupAttempts);
     }
 
     @Override
     protected void configure() {
         optionallyMapResourceParameterAsVolume(CONTAINER_CONFIG_LOCATION, configLocation);
         addExposedPort(CQL_PORT);
-        setStartupAttempts(3);
     }
 
     @Override
@@ -93,7 +97,7 @@ public class CassandraContainer<SELF extends CassandraContainer<SELF>> extends G
     /**
      * Initialize Cassandra with the custom overridden Cassandra configuration
      * <p>
-     * Be aware, that Docker effectively replace all /etc/cassandra content with the content of config location, so if
+     * Be aware, that Docker effectively replaces all /etc/cassandra content with the content of config location, so if
      * Cassandra.yaml in configLocation is absent or corrupted, then Cassandra just won't launch
      *
      * @param configLocation relative classpath with the directory that contains cassandra.yaml and other configuration files

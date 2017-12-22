@@ -259,7 +259,10 @@ public abstract class ScriptUtils {
 			splitSqlScript(scriptPath, script, separator, commentPrefix, blockCommentStartDelimiter,
 				blockCommentEndDelimiter, statements);
 
-			databaseDelegate.execute(statements, scriptPath, continueOnError, ignoreFailedDrops);
+			try (DatabaseDelegate closeableDelegate = databaseDelegate) {
+				closeableDelegate.execute(statements, scriptPath, continueOnError, ignoreFailedDrops);
+			}
+
 
 			long elapsedTime = System.currentTimeMillis() - startTime;
 			if (LOGGER.isInfoEnabled()) {
