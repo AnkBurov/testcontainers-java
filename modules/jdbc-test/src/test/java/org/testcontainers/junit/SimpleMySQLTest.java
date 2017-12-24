@@ -94,6 +94,20 @@ public class SimpleMySQLTest {
         }
     }
 
+    @Test
+    public void testInitScript() throws Exception {
+        MySQLContainer container = (MySQLContainer) new MySQLContainer("mysql:5.6")
+                .withInitScript("somepath/init_mysql.sql");
+        container.start();
+
+        try {
+            ResultSet resultSet = performQuery(container, "SELECT * FROM bar");
+            assertEquals("Unexpected answer", "hello world", resultSet.getString(1));
+        } finally {
+            container.stop();
+        }
+    }
+
     @NonNull
     protected ResultSet performQuery(MySQLContainer containerRule, String sql) throws SQLException {
         HikariConfig hikariConfig = new HikariConfig();

@@ -1,10 +1,14 @@
 package org.testcontainers.containers;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.jetbrains.annotations.NotNull;
 import org.rnorth.ducttape.ratelimits.RateLimiter;
 import org.rnorth.ducttape.ratelimits.RateLimiterBuilder;
 import org.rnorth.ducttape.unreliables.Unreliables;
 import org.testcontainers.containers.traits.LinkableContainer;
+import org.testcontainers.delegate.DatabaseDelegate;
+import org.testcontainers.ext.ScriptUtils;
+import org.testcontainers.jdbc.JdbcDatabaseDelegate;
 import org.testcontainers.utility.MountableFile;
 
 import java.sql.Connection;
@@ -25,6 +29,7 @@ public abstract class JdbcDatabaseContainer<SELF extends JdbcDatabaseContainer<S
     private static final Object DRIVER_LOAD_MUTEX = new Object();
     private Driver driver;
     protected Map<String, String> parameters = new HashMap<>();
+    private String initScriptPath;
 
     private static final RateLimiter DB_CONNECT_RATE_LIMIT = RateLimiterBuilder.newBuilder()
             .withRate(10, TimeUnit.SECONDS)
@@ -80,6 +85,11 @@ public abstract class JdbcDatabaseContainer<SELF extends JdbcDatabaseContainer<S
 
     }
 
+    public SELF withInitScript(String initScriptPath) {
+        this.initScriptPath = initScriptPath;
+        return self();
+    }
+
     @Override
     protected void waitUntilContainerStarted() {
         // Repeatedly try and open a connection to the DB and execute a test query
@@ -102,6 +112,11 @@ public abstract class JdbcDatabaseContainer<SELF extends JdbcDatabaseContainer<S
                 }
             }
         });
+    }
+
+    @Override
+    protected void containerIsStarted(InspectContainerResponse containerInfo) {
+        runInitScriptIfRequired();
     }
 
     /**
@@ -156,6 +171,15 @@ public abstract class JdbcDatabaseContainer<SELF extends JdbcDatabaseContainer<S
         }
     }
 
+    /**
+     * Load init script content and apply it to the database if initScriptPath is set
+     */
+    private void runInitScriptIfRequired() {
+        if (initScriptPath != null) {
+            ScriptUtils.runInitScript(getDatabaseDelegate(), initScriptPath, logger());
+        }
+    }
+
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
     }
@@ -163,5 +187,9 @@ public abstract class JdbcDatabaseContainer<SELF extends JdbcDatabaseContainer<S
     @SuppressWarnings("unused")
     public void addParameter(String paramName, String value) {
         this.parameters.put(paramName, value);
+    }
+
+    protected DatabaseDelegate getDatabaseDelegate() {
+        return new JdbcDatabaseDelegate(this);
     }
 }

@@ -223,23 +223,7 @@ public class ContainerDatabaseDriver implements Driver {
         Matcher matcher = INITSCRIPT_MATCHING_PATTERN.matcher(url);
         if (matcher.matches()) {
             String initScriptPath = matcher.group(2);
-            try {
-                URL resource = Thread.currentThread().getContextClassLoader().getResource(initScriptPath);
-
-                if (resource == null) {
-                    LOGGER.warn("Could not load classpath init script: {}", initScriptPath);
-                    throw new SQLException("Could not load classpath init script: " + initScriptPath + ". Resource not found.");
-                }
-
-                String sql = IOUtils.toString(resource, StandardCharsets.UTF_8);
-                ScriptUtils.executeDatabaseScript(databaseDelegate, initScriptPath, sql);
-            } catch (IOException e) {
-                LOGGER.warn("Could not load classpath init script: {}", initScriptPath);
-                throw new SQLException("Could not load classpath init script: " + initScriptPath, e);
-            } catch (ScriptException e) {
-                LOGGER.error("Error while executing init script: {}", initScriptPath, e);
-                throw new SQLException("Error while executing init script: " + initScriptPath, e);
-            }
+            ScriptUtils.runInitScript(databaseDelegate, initScriptPath, LOGGER);
         }
     }
 
