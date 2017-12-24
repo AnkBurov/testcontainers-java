@@ -37,18 +37,14 @@ public class CassandraContainer<SELF extends CassandraContainer<SELF>> extends G
     }
 
     public CassandraContainer(String dockerImageName) {
-        this(dockerImageName, 3);
-    }
-
-    public CassandraContainer(String dockerImageName, int startupAttempts) {
         super(dockerImageName);
-        setStartupAttempts(startupAttempts);
+        addExposedPort(CQL_PORT);
+        setStartupAttempts(3);
     }
 
     @Override
     protected void configure() {
         optionallyMapResourceParameterAsVolume(CONTAINER_CONFIG_LOCATION, configLocation);
-        addExposedPort(CQL_PORT);
     }
 
     @Override
@@ -62,11 +58,11 @@ public class CassandraContainer<SELF extends CassandraContainer<SELF>> extends G
     private void runInitScriptIfRequired() {
         if (initScriptPath != null) {
             try {
-                URL resource = Optional.ofNullable(Thread.currentThread().getContextClassLoader().getResource(initScriptPath))
-                        .orElseThrow(() -> {
-                            logger().warn("Could not load classpath init script: {}", initScriptPath);
-                            return new ScriptLoadException("Could not load classpath init script: " + initScriptPath + ". Resource not found.");
-                        });
+                URL resource = Thread.currentThread().getContextClassLoader().getResource(initScriptPath);
+                if (resource == null) {
+                    logger().warn("Could not load classpath init script: {}", initScriptPath);
+                    throw new ScriptLoadException("Could not load classpath init script: " + initScriptPath + ". Resource not found.");
+                }
                 String cql = IOUtils.toString(resource, StandardCharsets.UTF_8);
                 DatabaseDelegate databaseDelegate = getDatabaseDelegate();
                 ScriptUtils.executeDatabaseScript(databaseDelegate, initScriptPath, cql);

@@ -9,8 +9,8 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>commons</artifactId>
-    <name>TestContainers :: Commons</name>
+    <artifactId>database-commons</artifactId>
+    <name>TestContainers :: Database-Commons</name>
 
     <dependencies>
         <dependency>

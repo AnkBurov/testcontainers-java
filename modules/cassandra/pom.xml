@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>commons</artifactId>
+            <artifactId>database-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -44,13 +44,15 @@ public abstract class AbstractDatabaseDelegate<CONTAINER, CONNECTION> implements
 
     @Override
     public void close() {
-        closeConnectionQuietly();
+        if (connection != null) {
+            closeConnectionQuietly(connection);
+        }
     }
 
     /**
      * Quietly close the connection
      */
-    public abstract void closeConnectionQuietly();
+    protected abstract void closeConnectionQuietly(CONNECTION connection);
 
     /**
      * Template method for creating new connections to the database

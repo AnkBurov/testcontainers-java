@@ -53,9 +53,9 @@ public class CassandraDatabaseDelegate extends AbstractDatabaseDelegate<Cassandr
     }
 
     @Override
-    public void closeConnectionQuietly() {
+    protected void closeConnectionQuietly(Session session) {
         try {
-            getConnection().getCluster().close();
+            session.getCluster().close();
         } catch (Exception e) {
             log.error("Could not close cassandra connection", e);
         }

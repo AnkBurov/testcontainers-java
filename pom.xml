@@ -167,7 +167,7 @@
         <module>modules/nginx</module>
         <module>modules/cassandra</module>
         <module>modules/jdbc-test</module>
-        <module>modules/commons</module>
+        <module>modules/database-commons</module>
     </modules>
 
     <profiles>

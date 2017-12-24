@@ -49,10 +49,11 @@ public class CassandraQueryWaitStrategy extends GenericContainer.AbstractWaitStr
      */
     @NotNull
     private CassandraContainer getCassandraContainer() {
-        return Optional.ofNullable(container)
-                .filter(genericContainer -> genericContainer instanceof CassandraContainer)
-                .map(genericContainer -> (CassandraContainer) genericContainer)
-                .orElseThrow(() -> new UnsupportedOperationException("Unsupported container type"));
+        if (container instanceof CassandraContainer) {
+            return (CassandraContainer) container;
+        } else {
+            throw new IllegalStateException("Unsupported container type");
+        }
     }
 
     private DatabaseDelegate getDatabaseDelegate(CassandraContainer container) {

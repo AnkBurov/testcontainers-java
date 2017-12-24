@@ -24,92 +24,85 @@ public class CassandraContainerTest {
 
     @Test
     public void testSimple() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT release_version FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
             assertNotNull("Result set has no release_version", resultSet.one().getString(0));
-        });
+        }
     }
 
     @Test
     public void testSpecificVersion() throws Exception {
         String cassandraVersion = "3.0.15";
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:" + cassandraVersion)
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:" + cassandraVersion)
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT release_version FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
             assertEquals("Cassandra has wrong version", cassandraVersion, resultSet.one().getString(0));
-        });
+        }
     }
 
     @Test
     public void testConfigurationOverride() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withConfigurationOverride("cassandra-test-configuration-example")
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT cluster_name FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
             assertEquals("Cassandra configuration is not overridden", TEST_CLUSTER_NAME_IN_CONF, resultSet.one().getString(0));
-        });
+        }
     }
 
     @Test(expected = ContainerLaunchException.class)
     public void testEmptyConfigurationOverride() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withConfigurationOverride("cassandra-empty-configuration")
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
-        });
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
+        }
     }
 
     @Test
     public void testInitScript() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .withInitScript("initial.cql")
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        testInitScript(cassandraContainer);
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
+            testInitScript(cassandraContainer);
+        }
     }
 
     @Test
     public void testInitScriptWithLegacyCassandra() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:2.2.11")
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer("cassandra:2.2.11")
                 .withInitScript("initial.cql")
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        testInitScript(cassandraContainer);
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
+            testInitScript(cassandraContainer);
+        }
     }
 
     @Test
     public void testCassandraQueryWaitStrategy() throws Exception {
-        CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
+        try (CassandraContainer cassandraContainer = (CassandraContainer) new CassandraContainer()
                 .waitingFor(new CassandraQueryWaitStrategy())
-                .withLogConsumer(new Slf4jLogConsumer(logger));
-        performWithContainer(cassandraContainer, () -> {
+                .withLogConsumer(new Slf4jLogConsumer(logger))) {
+            cassandraContainer.start();
             ResultSet resultSet = performQuery(cassandraContainer, "SELECT release_version FROM system.local");
             assertTrue("Query was not applied", resultSet.wasApplied());
-        });
+        }
     }
 
     private void testInitScript(CassandraContainer cassandraContainer) {
-        performWithContainer(cassandraContainer, () -> {
-            ResultSet resultSet = performQuery(cassandraContainer, "SELECT * FROM IgniteTest.catalog_category");
-            assertTrue("Query was not applied", resultSet.wasApplied());
-            Row row = resultSet.one();
-            assertEquals("Inserted row is not in expected state", 1, row.getLong(0));
-            assertEquals("Inserted row is not in expected state", "test_category", row.getString(1));
-        });
-    }
-
-    private void performWithContainer(CassandraContainer cassandraContainer, Runnable runnable) {
-        cassandraContainer.start();
-        try {
-            runnable.run();
-        } finally {
-            cassandraContainer.stop();
-        }
+        ResultSet resultSet = performQuery(cassandraContainer, "SELECT * FROM IgniteTest.catalog_category");
+        assertTrue("Query was not applied", resultSet.wasApplied());
+        Row row = resultSet.one();
+        assertEquals("Inserted row is not in expected state", 1, row.getLong(0));
+        assertEquals("Inserted row is not in expected state", "test_category", row.getString(1));
     }
 
     private ResultSet performQuery(CassandraContainer cassandraContainer, String cql) {
