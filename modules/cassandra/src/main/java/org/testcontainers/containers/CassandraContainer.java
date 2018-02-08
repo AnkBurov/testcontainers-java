@@ -1,5 +1,6 @@
 package org.testcontainers.containers;
 
+import com.datastax.driver.core.Cluster;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import org.apache.commons.io.IOUtils;
 import org.testcontainers.containers.delegate.CassandraDatabaseDelegate;
@@ -137,6 +138,13 @@ public class CassandraContainer<SELF extends CassandraContainer<SELF>> extends G
      */
     public String getPassword() {
         return PASSWORD;
+    }
+
+    public Cluster getCluster() {
+        return Cluster.builder()
+                .addContactPoint(this.getContainerIpAddress())
+                .withPort(this.getMappedPort(CQL_PORT))
+                .build();
     }
 
     private DatabaseDelegate getDatabaseDelegate() {
