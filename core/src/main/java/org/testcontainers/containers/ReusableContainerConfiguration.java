@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
+import static org.testcontainers.containers.ConflictingImageVersionsReuseBehaviour.FAIL;
+
 /**
  * @author Eugeny Karpov
  */
@@ -13,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 public class ReusableContainerConfiguration {
 
     private final String containerName;
+    private final ConflictingImageVersionsReuseBehaviour imageConflictBehaviour;
     private final boolean isEnabled;
 
     public static Builder builder() {
@@ -22,9 +25,15 @@ public class ReusableContainerConfiguration {
     public static class Builder {
         private String containerName;
         private Boolean isEnabled = true;
+        private ConflictingImageVersionsReuseBehaviour imageConflictBehaviour = FAIL;
 
         public Builder withContainerName(String containerName) {
             this.containerName = containerName;
+            return this;
+        }
+
+        public Builder withConflictingImageVersionsReuseBehaviour(ConflictingImageVersionsReuseBehaviour behaviour) {
+            this.imageConflictBehaviour = behaviour;
             return this;
         }
 
@@ -37,7 +46,10 @@ public class ReusableContainerConfiguration {
             if (StringUtils.isBlank(containerName)) {
                 throw new IllegalArgumentException("Container name must be specified with REUSABLE mode");
             }
-            return new ReusableContainerConfiguration(containerName, isEnabled);
+            if (imageConflictBehaviour == null) { //just in case
+                throw new IllegalArgumentException("ConflictingImageVersionsReuseBehaviour cannot be null");
+            }
+            return new ReusableContainerConfiguration(containerName, imageConflictBehaviour, isEnabled);
         }
     }
 }

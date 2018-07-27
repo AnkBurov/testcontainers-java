@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.val;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.testcontainers.containers.ConflictingImageVersionsReuseBehaviour.FAIL;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDERR;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT;
 import static org.testcontainers.utility.CommandLine.runShellCommand;
@@ -172,6 +174,9 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
 
     @Setter(AccessLevel.NONE)
     private ContainerStrategyType strategyType = ContainerStrategyType.DISPOSABLE;
+
+    @Setter(AccessLevel.NONE)
+    private ReusableContainerConfiguration reusableContainerConfiguration;
 
     @Setter(AccessLevel.NONE)
     private boolean isReusingEnabledWhenReusable = false;
@@ -327,8 +332,19 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
         String createdContainerImage = createdContainer.getConfig().getImage();
         if (!dockerImageName.equals(createdContainerImage)) {
             logger().error("Found existing container with name {} has unexpected image {}",
-                createdContainer.getName(), createdContainerImage);
-            throw new ContainerLaunchException("Unexpected image");
+                           createdContainer.getName(), createdContainerImage);
+
+            val imageConflictBehaviour = Optional.ofNullable(reusableContainerConfiguration.getImageConflictBehaviour())
+                                                 .orElse(FAIL);
+            switch (imageConflictBehaviour) {
+                case DELETE:
+                    ResourceReaper.instance().stopAndRemoveContainer(createdContainer.getId(), createdContainerImage);
+                    createdContainer = createContainer(profiler, dockerImageName);
+                    break;
+                case FAIL:
+                default:
+                    throw new ContainerLaunchException("Unexpected image");
+            }
         }
 
         containerId = createdContainer.getId();
@@ -1160,6 +1176,7 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
     public SELF withReuseExistingContainerStrategy(ReusableContainerConfiguration configuration) {
         containerName = configuration.getContainerName();
         strategyType = ContainerStrategyType.REUSABLE;
+        reusableContainerConfiguration = configuration;
         isReusingEnabledWhenReusable =
             TestcontainersConfiguration.getInstance().isReusingEnabledWhenReusable() // check global configuration
             && configuration.isEnabled(); // check container configuration

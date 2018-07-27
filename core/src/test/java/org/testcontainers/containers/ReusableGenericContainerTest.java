@@ -14,6 +14,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.testcontainers.containers.ConflictingImageVersionsReuseBehaviour.DELETE;
+import static org.testcontainers.containers.ConflictingImageVersionsReuseBehaviour.FAIL;
 import static org.testcontainers.containers.ReusableContainerConfiguration.builder;
 
 /**
@@ -123,6 +125,24 @@ public class ReusableGenericContainerTest {
         }
     }
 
+    @Test
+    public void tryWrongImageOnDeleteConflictingBehaviour() {
+        String containerName = "tryWrongImageOnDeleteConflictingBehaviour-consul";
+
+        stopAndRemoveContainers(containerName);
+
+        try (
+            GenericContainer firstContainerObject = createReusableContainer(containerName, "consul:1.2.1");
+            GenericContainer secondContainerObject = createReusableContainer(containerName, "consul:1.2.0", DELETE)
+        ) {
+            firstContainerObject.start();
+
+            secondContainerObject.start();
+
+            assertFalse(isContainerExists(firstContainerObject.getContainerId()));
+        }
+    }
+
     private GenericContainer createAndStartReusableContainer(String containerName) {
         GenericContainer container = createReusableContainer(containerName);
         container.start();
@@ -134,10 +154,15 @@ public class ReusableGenericContainerTest {
     }
 
     private GenericContainer createReusableContainer(String containerName, String imageName) {
+        return createReusableContainer(containerName, imageName, FAIL);
+    }
+
+    private GenericContainer createReusableContainer(String containerName, String imageName, ConflictingImageVersionsReuseBehaviour behaviour) {
         return new GenericContainer<>(imageName)
             .withLogConsumer(new Slf4jLogConsumer(log))
             .withReuseExistingContainerStrategy(builder()
                 .withContainerName(containerName)
+                .withConflictingImageVersionsReuseBehaviour(behaviour)
                 .build());
     }
 
@@ -158,5 +183,9 @@ public class ReusableGenericContainerTest {
 
     private Boolean isContainerRunning(String containerId) {
         return dockerClient.inspectContainerCmd(containerId).exec().getState().getRunning();
+    }
+
+    private Boolean isContainerExists(String containerId) {
+        return dockerClient.listContainersCmd().withIdFilter(Collections.singletonList(containerId)).exec().size() > 0;
     }
 }
