@@ -330,7 +330,18 @@ public class GenericContainer<SELF extends GenericContainer<SELF>>
 
         // check that found image is using exactly the same image
         String createdContainerImage = createdContainer.getConfig().getImage();
-        if (!dockerImageName.equals(createdContainerImage)) {
+
+        // check that the created (or existing) container has expected image id
+        String createdContainerImageId = createdContainer.getImageId();
+        boolean areImageIdsTheSame = dockerClient.listImagesCmd()
+                                                 .withImageNameFilter(dockerImageName)
+                                                 .exec()
+                                                 .stream()
+                                                 .findFirst()
+                                                 .map(img -> img.getId().equals(createdContainerImageId))
+                                                 .orElse(true); // if an image isn't found by its name, then consider it as an ok case
+
+        if (!dockerImageName.equals(createdContainerImage) || !areImageIdsTheSame) {
             logger().error("Found existing container with name {} has unexpected image {}",
                            createdContainer.getName(), createdContainerImage);
 
